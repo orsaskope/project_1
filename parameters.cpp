@@ -108,7 +108,7 @@ Params* ArgsParser(int argc, char* argv[]) {
             else if (!strcmp(argv[i], "false") || !strcmp(argv[i], "f")) args->range = false;
             else {
                 cout << "Invalid '-range' parameter" << endl;
-                cout << "a" << argv[i] << "a" << endl;
+                cout << argv[i] << endl;
                 exit(1);
             }
         }
