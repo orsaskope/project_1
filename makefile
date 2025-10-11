@@ -16,5 +16,7 @@ search:search.cpp
 valgrind:$(EXEC)
 	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./$(EXEC) $(ARGS)
 
+run:$(EXEC)
+	./$(EXEC) $(ARGS)
 clean:
 	rm -f $(OBJS) $(EXEC)

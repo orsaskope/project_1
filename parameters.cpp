@@ -34,6 +34,7 @@ void printParameters(Params* p) {
     " Number of clusters to check: " << p->nprobe << " seed: " << p->seed << " nbits: " << p->nbits << " algorithm: " << p->algorithm << endl;
 }
 
+// Helping function to check if the arguments that statrt with "-" are followed by the corresponding value
 void validArgument(char* argument, int argc, int i) {
     if(i >= argc) {
         cout << "Not enough values given" << endl;
