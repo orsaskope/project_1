@@ -5,7 +5,7 @@
 #include <cstdlib> 
 
 Params::Params() {
-    input = nullptr;
+    input = "";
     query = nullptr;
     o = nullptr;
     k = 0;
@@ -28,10 +28,10 @@ Params::Params() {
 };
 
 void printParameters(Params* p) {
-    cout << "input file: " << p->input <<" query: " << p->query << " output file:" << p->o << " Number of LSH functions for g: " << p->k << " Number of hashtables: " << p->l <<
-    " Cell size on the straight line: " << p->w << " Number of nearest: " << p->n << " Search radius: " << p->r << " Type: " << p->type << " Area search?: " << p->range <<
-    " Projection points: " << p->kproj << " Max points to check(hypercube) OR number of subvectors(ivfpq): " << p->m << " Max cube vertices: " << p->probes << " Number of clusters: " << p->kclusters <<
-    " Number of clusters to check: " << p->nprobe << " seed: " << p->seed << " nbits: " << p->nbits << " algorithm: " << p->algorithm << endl;
+    cout << "input file: " << p->input <<"\nquery: " << p->query << "\noutput file:" << p->o << "\nNumber of LSH functions for g: " << p->k << "\nNumber of hashtables: " << p->l <<
+    "\nCell size on the straight line: " << p->w << "\nNumber of nearest: " << p->n << " Search radius: " << p->r << "\nType: " << p->type << "\nArea search?: " << p->range <<
+    "\nProjection points: " << p->kproj << "\nMax points to check(hypercube)/number of subvectors(ivfpq): " << p->m << "\nMax cube vertices: " << p->probes << "\nNumber of clusters: " << p->kclusters <<
+    "\nNumber of clusters to check: " << p->nprobe << "\nseed: " << p->seed << "\nnbits: " << p->nbits << "\nalgorithm: " << p->algorithm << endl;
 }
 
 // Helping function to check if the arguments that statrt with "-" are followed by the corresponding value
@@ -50,10 +50,13 @@ Params* ArgsParser(int argc, char* argv[]) {
     Params* args = new Params();
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
-        if (arg == "-d") cout << "-d" << endl;
-        else if (arg == "-q") cout << "-q" << endl;
+        if (arg == "-q") cout << "-q" << endl;
         else if (arg == "-o") cout << "-o" << endl;
-
+        
+        else if (arg == "-d") {
+            validArgument(argv[i+1], argc, i+1);
+            args->input = argv[++i];
+        }
         else if (arg == "-k") {
             validArgument(argv[i+1], argc, i+1);
             args->k = stoi(argv[++i]);

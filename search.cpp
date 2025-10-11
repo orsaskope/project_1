@@ -6,6 +6,7 @@
 
 using namespace std;
 
+// In case of MNIST input, we need to swap big->little endian for the first values
 void swapEndian(u_int32_t* value) {
     u_int32_t byte4 = (*value >> 24) & 0x000000FF;
     u_int32_t byte3 = (*value >> 8) & 0x0000FF00;
@@ -14,8 +15,9 @@ void swapEndian(u_int32_t* value) {
     *value =  byte1 | byte2| byte3 | byte4;
 }
 
-void readInputMnist() {
-    FILE* fd = fopen("input.dat", "r");
+// Function to read MNIST input file
+void readInputMnist(const char* file) {
+    FILE* fd = fopen(file, "r");
     if (fd == NULL) {
             perror("Failed to open file");
         exit(errno);
@@ -39,9 +41,9 @@ int main(int argc, char* argv[]){
     Params* p = ArgsParser(argc, argv);
     initializeParams(p);
     printParameters(p);
-
+    
     if(p->type == "mnist")
-        readInputMnist();
+        readInputMnist(p->input.c_str());
 
     delete(p);
     return 0;

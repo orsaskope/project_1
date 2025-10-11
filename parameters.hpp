@@ -6,7 +6,7 @@
 using namespace std;
 
 struct Params{
-    FILE* input;    // Input file
+    string input;    // Input file
     FILE* query;    // Query
     FILE* o;        // Output file
     int k;          // Number of LSH functions for g
