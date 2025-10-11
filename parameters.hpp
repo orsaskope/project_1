@@ -7,7 +7,7 @@ using namespace std;
 
 struct Params{
     FILE* input;    // Input file
-    FILE* query;    // Output file
+    FILE* query;    // Query
     FILE* o;        // Output file
     int k;          // Number of LSH functions for g
     int l;          // Number of hashtables
@@ -33,6 +33,7 @@ struct Params{
 void validArgument(char* argument, int argc, int i);
 Params* ArgsParser(int argc, char* argv[]);
 void initializeParams(Params* params);
-
+string returnType(Params* p);
+void printParameters(Params* p);
 
 #endif

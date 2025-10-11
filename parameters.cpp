@@ -27,6 +27,13 @@ Params::Params() {
     algorithm = -1;
 };
 
+void printParameters(Params* p) {
+    cout << "input file: " << p->input <<" query: " << p->query << " output file:" << p->o << " Number of LSH functions for g: " << p->k << " Number of hashtables: " << p->l <<
+    " Cell size on the straight line: " << p->w << " Number of nearest: " << p->n << " Search radius: " << p->r << " Type: " << p->type << " Area search?: " << p->range <<
+    " Projection points: " << p->kproj << " Max points to check(hypercube) OR number of subvectors(ivfpq): " << p->m << " Max cube vertices: " << p->probes << " Number of clusters: " << p->kclusters <<
+    " Number of clusters to check: " << p->nprobe << " seed: " << p->seed << " nbits: " << p->nbits << " algorithm: " << p->algorithm << endl;
+}
+
 void validArgument(char* argument, int argc, int i) {
     if(i >= argc) {
         cout << "Not enough values given" << endl;
