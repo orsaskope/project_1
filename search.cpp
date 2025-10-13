@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstring>
 #include <cstdio>
+#include <vector>
 
 #include "parameters.hpp"
 
@@ -22,17 +23,33 @@ void readInputMnist(const char* file) {
             perror("Failed to open file");
         exit(errno);
     }
-    u_int32_t magic_num, num_of_images, num_of_rows, num_of_columns;
+    u_int32_t magic_num, images, rows, columns;
     fread(&magic_num, sizeof(u_int32_t), 1, fd);
-    fread(&num_of_images, sizeof(u_int32_t), 1, fd);
-    fread(&num_of_rows, sizeof(u_int32_t), 1, fd);
-    fread(&num_of_columns, sizeof(u_int32_t), 1, fd);
+    fread(&images, sizeof(u_int32_t), 1, fd);
+    fread(&rows, sizeof(u_int32_t), 1, fd);
+    fread(&columns, sizeof(u_int32_t), 1, fd);
 
     swapEndian(&magic_num);
-    swapEndian(&num_of_images);
-    swapEndian(&num_of_rows);
-    swapEndian(&num_of_columns);
-    cout << "magic number: " << magic_num << "\nnumber of images: " << num_of_images << "\nnumber of rows: " << num_of_rows << "\nnumber of columns:" << num_of_columns << endl;
+    swapEndian(&images);
+    swapEndian(&rows);
+    swapEndian(&columns);
+    cout << "magic number: " << magic_num << "\nnumber of images: " << images << "\nnumber of rows: " << rows << "\nnumber of columns:" << columns << endl;
+    
+    // We create a vector of vectors to store all the images.
+    // Each element (dataset[i]) is a vector<unsigned char> of size 'size' that contains an image.
+    // No need to swap big to little endian since we are reading single bytes.
+    int size = rows * columns;
+    vector<vector<unsigned char>> dataset(images, vector<unsigned char>(size));
+    for (int i = 0; i < images; i++) {
+        int res = fread(dataset[i].data(), sizeof(unsigned char), size, fd);
+        if (res != size) {
+            cout << "error in reading mnist images of size " << size << endl;
+            exit(errno);
+        }
+    }
+    // for (int i = 0; i < size; i++) {
+    //    printf("%u ",dataset[0][i]);
+    // }
     return;
 }
 
