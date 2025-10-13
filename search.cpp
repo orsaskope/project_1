@@ -17,7 +17,7 @@ void swapEndian(u_int32_t* value) {
 }
 
 // Function to read MNIST input file
-void readInputMnist(const char* file) {
+vector<vector<unsigned char>> readInputMnist(const char* file) {
     FILE* fd = fopen(file, "r");
     if (fd == NULL) {
             perror("Failed to open file");
@@ -47,10 +47,7 @@ void readInputMnist(const char* file) {
             exit(errno);
         }
     }
-    // for (int i = 0; i < size; i++) {
-    //    printf("%u ",dataset[0][i]);
-    // }
-    return;
+    return dataset;
 }
 
 
@@ -59,8 +56,12 @@ int main(int argc, char* argv[]){
     initializeParams(p);
     printParameters(p);
     
+    vector<vector<unsigned char>> dataset;
     if(p->type == "mnist")
-        readInputMnist(p->input.c_str());
+        dataset = readInputMnist(p->input.c_str());
+    for (int i = 0; i < dataset[0].size(); i++) {
+       printf("%u ",dataset[0][i]);
+    }
 
     delete(p);
     return 0;
