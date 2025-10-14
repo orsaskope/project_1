@@ -17,12 +17,7 @@ void swapEndian(u_int32_t* value) {
 }
 
 // Function to read MNIST input file
-vector<vector<unsigned char>> readInputMnist(const char* file) {
-    FILE* fd = fopen(file, "r");
-    if (fd == NULL) {
-            perror("Failed to open file");
-        exit(errno);
-    }
+vector<vector<unsigned char>> readInputMnist(FILE* fd) {
     u_int32_t magic_num, images, rows, columns;
     fread(&magic_num, sizeof(u_int32_t), 1, fd);
     fread(&images, sizeof(u_int32_t), 1, fd);
@@ -50,18 +45,43 @@ vector<vector<unsigned char>> readInputMnist(const char* file) {
     return dataset;
 }
 
+vector<vector<float>> readInputSift(FILE* fd) {
+    vector<vector<float>> dataset(1000000, vector<float>(128));
+    int32_t dim;  // vector dimension. For every vector, dim = 128.
+
+    // We create a vector of vectors to store all the images.
+    // Each image (dataset[i]) is a vector<float> of size 128.
+    for (int i = 0; i < 1000000; i++) {
+        int res = fread(&dim, sizeof(dim), 1, fd);
+        res = fread(dataset[i].data(), sizeof(float), 128, fd);
+        if (res != 128) {
+            cout << "error in reading sift vectors" << endl;
+            exit(errno);
+        }
+    }
+    return dataset;
+}
+
 
 int main(int argc, char* argv[]){
     Params* p = ArgsParser(argc, argv);
     initializeParams(p);
     printParameters(p);
     
-    vector<vector<unsigned char>> dataset;
-    if(p->type == "mnist")
-        dataset = readInputMnist(p->input.c_str());
-    for (int i = 0; i < dataset[0].size(); i++) {
-       printf("%u ",dataset[0][i]);
+    // Read input file
+    FILE* fd = fopen(p->input.c_str(), "r");
+    if (fd == NULL) {
+            perror("Failed to open file");
+        exit(errno);
     }
+
+    if(p->type == "mnist")
+        vector<vector<unsigned char>> dataset = readInputMnist(fd);
+    else
+        vector<vector<float>> dataset = readInputSift(fd);
+    // for (int i = 0; i < dataset[0].size(); i++) {
+    //    printf("%u ",dataset[0][i]);
+    // }
 
     delete(p);
     return 0;
