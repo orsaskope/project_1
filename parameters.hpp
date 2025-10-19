@@ -3,6 +3,7 @@
 
 #include <string>
 #include <cstdio>
+#include <vector>
 using namespace std;
 
 struct Params{
@@ -28,6 +29,16 @@ struct Params{
     int algorithm;  // lsh = 0, hypercube = 1, ivfflat = 2, ivfpq = 3
 
     Params();
+};
+
+
+struct MNISTData {
+    int magic_number = 0;
+    int number_of_images = 0;
+    int n_rows = 0;
+    int n_cols = 0;
+    int image_size = 0; 
+    std::vector<std::vector<unsigned char>> images;
 };
 
 void validArgument(char* argument, int argc, int i);
