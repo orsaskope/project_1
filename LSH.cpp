@@ -45,28 +45,17 @@ std::vector<long long> LSH::compute_h(const std::vector<double>& point, int tabl
     return hvals;
 }
 
-
-
-std::string LSH::g_to_string(const std::vector<long long>& hvals) {
-    std::ostringstream oss;
-    for (size_t i = 0; i < hvals.size(); ++i) {
-        if (i) oss << "_";
-        oss << hvals[i];
-    }
-    std::string key = oss.str();
-
-
-    return key;
-}
-
-
-
-
-
-
-std::string LSH::compute_g(const std::vector<double>& point, int tableIdx, int n) {
+LSH::GResult LSH::compute_g(const std::vector<double>& point, int tableIdx, int n ,int index) {
     static const unsigned long long M = 4294967291ULL;
     auto hvals = compute_h(point, tableIdx );
+
+    // (a+b) mod M =((a mod M)+(b mod M)) mod M therefore
+    // sum=(r1​h1​+r2​h2​+…+rk​hk​) mod M is equivalent to sum=(((r1​h1​) mod M)+ ((r2​h2​) mod M)+ ..... + ((rk​hk​) mod M)) mod M which is better because 
+    // that way we get to also search for the case of overflow.
+    // Doing sum %= M at every step: 
+    // 1)Keeps the intermediate sum from overflowing
+    // 2)Preserves the correct modular arithmetic result
+
 
     unsigned long long sum = 0;
     for (int i = 0; i < k; ++i) {
@@ -75,20 +64,20 @@ std::string LSH::compute_g(const std::vector<double>& point, int tableIdx, int n
     }
 
     unsigned long long TableSize = n / 4;  // or n/8, n/16
-    unsigned long long g_val = sum % M;
-    g_val %= TableSize;
+    unsigned long long ID = sum % M;       // the locality-sensitive ID
+    unsigned long long g_val = ID % TableSize;
 
-    return std::to_string(g_val);
+    return { index,std::to_string(g_val), ID };
 }
-
-
 
 void LSH::insert(int index, const std::vector<double>& point, int n) {
     for (int l = 0; l < L; ++l) {
-        std::string g_key = compute_g(point, l, n);
-        hashTables[l][g_key].push_back(index);
+        GResult g_res = compute_g(point, l, n , index);
+        hashTables[l][g_res.g_key].push_back(g_res);
+
     }
 }
+
 
 
 void LSH::print_tables() {

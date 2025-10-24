@@ -14,6 +14,14 @@
 // === Locality Sensitive Hashing (LSH) class ===
 class LSH {
 public:
+
+    struct GResult {
+        int index;                 // index of the vector in dataset
+        std::string g_key;         // string key (for reference)
+        unsigned long long ID;     // locality-sensitive ID
+    };
+
+
     int L;   // number of hash tables
     int k;   // number of hash functions per table
     int dim; // dimension of data
@@ -29,20 +37,20 @@ public:
 
 
     // Hash tables
-    std::vector<std::unordered_map<std::string, std::vector<int>>> hashTables;
+    std::vector<std::unordered_map<std::string, std::vector<GResult>>> hashTables;
+
 
     // Constructor
     LSH(int L_, int k_, int dim_, double w_, unsigned seed_ = 1);
 
     // Hashing functions
     std::vector<long long> compute_h(const std::vector<double>& point, int tableIdx );
-    std::string g_to_string(const std::vector<long long>& hvals);
-    std::string compute_g(const std::vector<double>& point, int tableIdx , int n);
 
-    // Core LSH operations
+    GResult compute_g(const std::vector<double>& point, int tableIdx, int n, int index);
+    // std::string compute_g(const std::vector<double>& point, int tableIdx , int n);
+
     void insert(int index, const std::vector<double>& point , int n);
     void print_tables();
-    size_t combine_hashes(const std::vector<long long>& hvals);
 
 
 private:

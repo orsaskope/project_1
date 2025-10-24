@@ -41,6 +41,12 @@ struct MNISTData {
     std::vector<std::vector<unsigned char>> images;
 };
 
+struct SIFTData {
+    int number_of_vectors = 0;     
+    int v_dim = 128;     
+    std::vector<std::vector<float>> vectors; 
+};
+
 void validArgument(char* argument, int argc, int i);
 Params* ArgsParser(int argc, char* argv[]);
 void initializeParams(Params* params);
