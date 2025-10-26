@@ -97,6 +97,10 @@ Params* ArgsParser(int argc, char* argv[]) {
             validArgument(argv[i+1], argc, i+1);
             args->nprobe = stoi(argv[++i]);
         }
+        else if (arg == "-seed") {
+            validArgument(argv[i+1], argc, i+1);
+            args->seed = stoi(argv[++i]);
+        }
         else if (arg == "-nbits") {
             validArgument(argv[i+1], argc, i+1);
             args->nbits = stoi(argv[++i]);

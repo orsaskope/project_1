@@ -106,16 +106,22 @@ int main(int argc, char* argv[]) {
             return 0;
         }
         if (p->algorithm == 2) {
-            ivfflat = new IVFFLAT(p->seed, p->kclusters, p->nprobe, p->n, p->r);
+            ivfflat = new IVFFLAT(p->seed, p->kclusters, p->nprobe, p->n, p->r, mnist.image_size);
 
             vector<vector<float>> image_float(mnist.number_of_images, vector<float>(mnist.image_size));
             for (int i = 0; i < mnist.number_of_images; ++i) {
                 for (int j = 0; j < mnist.image_size; ++j) {
-                    image_float[i][j] = static_cast<float>(mnist.images[i][j]) / 255.0;
+                    image_float[i][j] = static_cast<float>(mnist.images[i][j]) / 255.0; // change to float (dividing by 255 so that the numbers are from 0 to 1);
                 }
-
-                IvfflatSearch(image_float, ivfflat);
             }
+            // for (int j = 0; j < mnist.images.size(); j++) {
+            //     for (int i = 0; i < mnist.images[j].size(); i++)
+            //         printf("%u ", mnist.images[i][j]);
+            //     cout << endl;
+            // }
+            IvfflatSearch(image_float, ivfflat, p->range);
+            cout << "retuned to search" << endl;
+            
 
         }
 
@@ -124,7 +130,10 @@ int main(int argc, char* argv[]) {
     } else {
         vector<vector<float>> dataset = readInputSift(fd);
         std::cout << "SIFT dataset loaded.\n";
-        lsh = new LSH(p->l, p->k, 128, p->w, p->seed);
+        //lsh = new LSH(p->l, p->k, 128, p->w, p->seed);
+        ivfflat = new IVFFLAT(p->seed, p->kclusters, p->nprobe, p->n, p->r, 128);
+        IvfflatSearch(dataset, ivfflat, p->range);
+            cout << "retuned to search" << endl;
     }
 
 

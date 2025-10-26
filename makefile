@@ -3,7 +3,7 @@ HEADERS = params.hpp LSH.h ivfflat.hpp
 SOURCE = search.cpp parameters.cpp LSH.cpp IVFFLAT.cpp
 EXEC = search
 
-ARGS = -ivfflat -type mnist -k 6   -seed 9 -d input.dat
+ARGS = -ivfflat -type mnist -k 50  -seed 9 -d input.dat -kclusters 4 -range true
 
 CC =    g++
 FLAGS = -Wall -g
