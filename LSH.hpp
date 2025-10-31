@@ -3,11 +3,14 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <random>
 #include <string>
 #include <sstream>
 #include <cmath>
 #include <iostream>
+#include <algorithm>
+
 
 
 
@@ -46,15 +49,57 @@ public:
     // Hashing functions
     std::vector<long long> compute_h(const std::vector<double>& point, int tableIdx );
 
+    // g function
     GResult compute_g(const std::vector<double>& point, int tableIdx, int n, int index);
-    // std::string compute_g(const std::vector<double>& point, int tableIdx , int n);
 
+    // insert functions
     void insert(int index, const std::vector<double>& point , int n);
+
     void print_tables();
 
+    //function to get candidates from lsh hashing
+    std::vector<GResult> get_candidates(const std::vector<double>& query, int n);
 
+    // functions to return top neighbors of query vector for sift data
+    std::vector<std::pair<int, double>> knn_search(
+    const std::vector<double>& query,
+    const std::vector<std::vector<float>>& dataset,
+    int n, int k);
+
+    // functions to return top neighbors of query vector for mnist data
+    std::vector<std::pair<int, double>> knn_search_mnist(
+    const std::vector<double>& query,
+    const std::vector<std::vector<double>>& dataset,
+    int n, int k);
+
+    //brute force for mnist data
+    std::vector<std::pair<int, double>> brute_force_knn(
+    const std::vector<double>& query,
+    const std::vector<std::vector<double>>& dataset,
+    int k);
+
+    //brute force for sift data
+    std::vector<std::pair<int, double>> brute_force_knn_sift(
+    const std::vector<double>& query,                   
+    const std::vector<std::vector<float>>& dataset,    
+    int k);
+
+    //range search for sift data
+    std::vector<std::pair<int, double>> range_search_sift(
+    const std::vector<double>& query,
+    const std::vector<std::vector<float>>& dataset,
+    int n,
+    int radius);
+
+    //range search for mnist data
+    std::vector<std::pair<int, double>> range_search_mnist(
+    const std::vector<double>& query,
+    const std::vector<std::vector<double>>& dataset,
+    int n,
+    int radius);
+    
 private:
-    std::mt19937_64 rng;
+    std::mt19937_64 rng;            //random gengerator
 };
 
 #endif
