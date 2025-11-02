@@ -165,9 +165,9 @@ void run_mnist_experiment_lsh(Params* p, MNISTData& mnist) {
         fprintf(outfile, "tTrueAverage: %.6f\n", t_true);
         fprintf(outfile, "\n");
 
-        std::cout << "query" << qi + 1 << "\n"; 
+        
+        std::cout << "Query " << qi + 1 << " done \n"; 
 
-        std::cout << "✅ KNN querying completed for all query vectors.\n";
 
         if (qi == 99) {
             break;          //this keeps the query vectors to 100 so we can use the dataset but not run the entire query dataset
@@ -294,9 +294,9 @@ void run_sift_experiment_lsh(Params* p, SIFTData& sift) {
         fprintf(outfile, "tTrueAverage: %.6f\n", t_true);
         fprintf(outfile, "\n");
 
-        std::cout << "query" << qi + 1 << "\n"; 
+        std::cout << "Query " << qi + 1 << " done \n"; 
 
-        std::cout << "✅ KNN querying completed for all query vectors.\n";
+        
 
         if (qi == 99) {
             break;              //this keeps the query vectors to 100 so we can use the dataset but not run the entire query dataset
@@ -571,7 +571,7 @@ void run_sift_experiment_hypercube(Params* p, SIFTData& sift) {
         }
         //possible range search (if necessary)
         if (p->range) {
-            auto range_results = cube->range_search(query_vec, p->r, p->m, sift_dataset);
+            auto range_results = cube->range_search_sift(query_vec, p->r, p->m, sift_dataset);
             fprintf(outfile, "R-near neighbors:\n");
             for (const auto& res : range_results) {
                 fprintf(outfile, "Image_ID: %d\n", res.index);

@@ -141,19 +141,6 @@ std::vector<Hypercube::VertexResult> Hypercube::query(const std::vector<double>&
     if ((int)candidates.size() > M)
         candidates.resize(M);
 
-    //debugging info
-    std::cout << "Query key: " << query_key
-              << " | visited vertices (+ the original one): " << visited_vertices 
-              << " | candidates found: " << candidates.size() << "\n";
-
-
-    size_t bucket_size = 0;
-    auto it3 = hypercubeTable.find(query_key);
-    if (it3 != hypercubeTable.end()) {
-        bucket_size = it3->second.size();
-    }
-    std::cout << "Query vertex " << query_key 
-              << " contains " << bucket_size << " points.\n";
 
     return candidates;
 }
@@ -224,10 +211,7 @@ std::vector<Hypercube::VertexResult> Hypercube::range_search(
         }
     }
 
-    // Just printing how many we checked and how many matched
-    std::cout << "Range search: query checked " << candidates.size()
-              << " candidates, " << results.size()
-              << " within radius " << radius << "\n";
+
 
     return results;
 }
@@ -258,9 +242,7 @@ std::vector<Hypercube::VertexResult> Hypercube::range_search_sift(
         }
     }
 
-    std::cout << "Range search: query checked " << candidates.size()
-              << " candidates, " << results.size()
-              << " within radius " << radius << "\n";
+
 
     return results;
 }
