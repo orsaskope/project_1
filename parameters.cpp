@@ -6,8 +6,8 @@
 
 Params::Params() {
     input = "";
-    query = nullptr;
-    o = nullptr;
+    query = "";
+    o = "";
     k = 0;
     l = 0;
     w = 0.0;
@@ -25,6 +25,7 @@ Params::Params() {
     seed = 0;
     nbits = 0;
     algorithm = -1;
+    pq_sample = 0;
 };
 
 void printParameters(Params* p) {
@@ -50,9 +51,26 @@ Params* ArgsParser(int argc, char* argv[]) {
     Params* args = new Params();
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
-        if (arg == "-q") cout << "-q" << endl;
-        else if (arg == "-o") cout << "-o" << endl;
-        
+        if (arg == "-pq_sample") {
+            validArgument(argv[i+1], argc, i+1);
+            string pq_sample = argv[++i];
+            if (pq_sample == "true" || pq_sample == "1")
+                args->pq_sample = true;
+            else if (pq_sample == "false" || pq_sample == "0")
+                args->pq_sample = false;
+            else {
+                cout << "not valid pq sample argument setting to false" << endl;
+                args->pq_sample = false;
+            }
+        }
+        else if (arg == "-q") {
+            validArgument(argv[i+1], argc, i+1);
+            args->query = argv[++i];
+        }
+        else if (arg == "-o") {
+            validArgument(argv[i+1], argc, i+1);
+            args->o = argv[++i];
+        }
         else if (arg == "-d") {
             validArgument(argv[i+1], argc, i+1);
             args->input = argv[++i];
@@ -146,7 +164,7 @@ void initializeParams(Params* params) {
     if (params->n == 0) params->n = 1;
     if (params->r == 0) {
         if (params->type == "mnist") params->r = 2000;
-        else params->r = 2;
+        else params->r = 2000;
     }
 
     if (params->algorithm == 0) {    // LSH
@@ -169,9 +187,9 @@ void initializeParams(Params* params) {
     }
     if (params->algorithm == 3) {    // IVFPQ
         if (params->kclusters == 0) params->kclusters = 50;
-        if (params->nprobe == 0) params->nprobe = 5;
-        if (params->nbits == 0) params->nbits = 8;
-        if (params->m == 0) params->m = 16;
+        if (params->nprobe == 0) params->nprobe = 6;
+        if (params->nbits == 0) params->nbits = 6;
+        if (params->m == 0) params->m = 4;
         return;
     }
 }

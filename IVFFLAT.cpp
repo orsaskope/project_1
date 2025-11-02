@@ -31,14 +31,12 @@ void IvfflatSearch(imagesVector& dataset, IVFFLAT* ivfflat, imagesVector queryfi
     double total_recall = 0.0;       // Sum of all the true nearest neighbours that ivfflat found/N
     double total_ivfflat_time = 0.0;   // Total IVFFLAT time
     double total_brf_time = 0.0;     // Total brute force time
-    int Q = queryfile.size();       // Queries searched
+    size_t Q = queryfile.size();       // Queries searched
     int N = ivfflat->n;             // Nearest neighbours
     cout << "searching.." << endl;
-    cout << "queries = " << queryfile.size() << endl;
-    cout << "dataset = " << dataset.size() << endl;
     
     for (size_t i = 0; i < queryfile.size(); i++) {
-        fprintf(fout, "Query: %zu\n", i);
+        fprintf(fout, "\nQuery: %zu\n", i);
         fflush(fout);
         cout << "searching..\nqueries = " << queryfile.size()
         << "\ndataset = " << dataset.size() << endl;
@@ -101,7 +99,11 @@ void IvfflatSearch(imagesVector& dataset, IVFFLAT* ivfflat, imagesVector queryfi
         //    cout << "index: " << res[j].first << " distance: " << res[j].second << endl;
         // }
         // cout << "query " << i << " end" << endl;
+        if(i==99){
+            break;                  //this line breaks the loop at 100 vectors in order to get a subset to save time
+        }
     }
+    Q=100;
     fprintf(fout, "Average AF: %.6f\n", total_af / Q);
     fprintf(fout, "Recall@N: %.6f\n", total_recall / Q);
     fprintf(fout, "QPS: %.6f\n", Q / total_ivfflat_time);
@@ -113,81 +115,7 @@ void IvfflatSearch(imagesVector& dataset, IVFFLAT* ivfflat, imagesVector queryfi
     return;
 }
 
-// tbd: ?xreiazetai sqrt? afoy me noiazei h sygkrish apostasewn k dn me noiazei h akrivhs apostash
-float euclideanDist(floatVec& a, floatVec& b, int image_size) {
-    float dist = 0.0;
-    for (int i = 0; i < image_size; i++) 
-        dist += (a[i] - b[i]) * (a[i] - b[i]);
-    return sqrt(dist);
-}
-
-float silhouette(imagesVector dataset, IVFFLAT* ivfflat) {
-    // cout << "\nCentroid-Cluster Consistency " << endl;
-    // for (int i = 0; i < ivfflat->kclusters; i++) {
-    //     if (ivfflat->inverted_lists[i].empty()) continue;
-
-    //     float avg_to_self = 0.0f;
-    //     for (auto &v : ivfflat->inverted_lists[i])
-    //         avg_to_self += euclideanDist(v, ivfflat->centroids[i], ivfflat->image_size);
-    //     avg_to_self /= ivfflat->inverted_lists[i].size();
-
-    //     // Μετρά και απόσταση προς τα διπλανά centroids για να δεις αν επικαλύπτονται
-    //     float min_other = std::numeric_limits<float>::max();
-    //     for (int j = 0; j < ivfflat->kclusters; j++) {
-    //         if (j == i) continue;
-    //         float d = euclideanDist(ivfflat->centroids[i], ivfflat->centroids[j], ivfflat->image_size);
-    //         if (d < min_other) min_other = d;
-    //     }
-
-    //     cout << "Cluster " << i
-    //          << " | size=" << ivfflat->inverted_lists[i].size()
-    //          << " | avg_dist_to_own_centroid=" << avg_to_self
-    //          << " | min_dist_to_nearest_other_centroid=" << min_other
-    //          << endl;
-    // }
-
-    float score = 0.0f;
-    for (int i = 0; i < ivfflat->kclusters; i++) {
-        imagesVector cluster = ivfflat->inverted_lists[i];
-        //floatVec centroid = ivfflat->centroids[i];
-        for (size_t j = 0; j < cluster.size(); j++) {
-            floatVec vec = cluster[j];
-            float avg_dist_curr = 0.0f;
-            for (int neigh = 0; neigh < cluster.size(); neigh++) {
-                avg_dist_curr += euclideanDist(vec, cluster[neigh], ivfflat->image_size);
-            }
-            avg_dist_curr /= cluster.size();
-
-            int indx_next_centroid = 0;
-            float closest_dist = std::numeric_limits<float>::max();
-            for (int k = 0; k < ivfflat->centroids.size(); k++) {
-                if (k == i) continue;
-                int dist = euclideanDist(vec, ivfflat->centroids[k], ivfflat->image_size);
-                if (dist < closest_dist) {
-                    closest_dist = dist;
-                    indx_next_centroid = k;
-                }
-            }
-
-            float avg_dist_next = 0.0f;
-            imagesVector next_cluster = ivfflat->inverted_lists[indx_next_centroid];
-            for (int neigh = 0; neigh < next_cluster.size(); neigh++) {
-                avg_dist_next += euclideanDist(vec, next_cluster[neigh], ivfflat->image_size);
-            }
-            avg_dist_next /= next_cluster.size();
-
-            if (avg_dist_curr > avg_dist_next)
-                cout << "silhouete score: " << (avg_dist_next - avg_dist_curr) / avg_dist_curr << endl; 
-            else
-                cout << "ssilhouete score: " << (avg_dist_next - avg_dist_curr) / avg_dist_next << endl;
-            
-            score += (avg_dist_curr > avg_dist_next) ? (avg_dist_next - avg_dist_curr) / avg_dist_curr : (avg_dist_next - avg_dist_curr) / avg_dist_next;
-        }
-        score /= dataset.size();
-    }
-    return score;
-}
-
+/*-------------------------------------CLUSTERING---------------------------------------*/
 
 void clustering(imagesVector& dataset, IVFFLAT* ivfflat) {
     cout << "Got in clusteing" << endl;
@@ -203,10 +131,9 @@ void clustering(imagesVector& dataset, IVFFLAT* ivfflat) {
 
     int sample_sz = sqrt(dataset.size());
     sample.reserve(sample_sz);
-    cout << "got a sample set" << endl;
 
     vector<int> sample_idx;
-    while(sample.size() < sample_sz) {
+    while((int)sample.size() < sample_sz) {
         int idx = dist(generator);
         if (find(sample_idx.begin(), sample_idx.end(), idx) == sample_idx.end()) {
             sample.push_back(dataset[idx]);
@@ -249,8 +176,6 @@ void clustering(imagesVector& dataset, IVFFLAT* ivfflat) {
         if (avg_movement < 20) break;
     }
     
-
-    // printCLusters(ivfflat);
     return;
 }
 
@@ -353,6 +278,8 @@ void updateCentroids(IVFFLAT* ivfflat) {
     
 }
 
+/*-------------------------------------QUERY SEARCH PHASE--------------------------------------*/
+
 // Search the nprobe closest centroids and return a vector of the centroid's index and the distance.
 vector<int> QueryCentroidSearch(IVFFLAT* ivfflat, floatVec q) {
     vector<pair<int,float>>centroids_dist;
@@ -396,11 +323,90 @@ pair<vector<pair<int, float>>, vector<int>> QueryVectorSearch(IVFFLAT* ivfflat, 
     }
     
     int N = ivfflat->n;
-    if (res.size() < N) N = res.size();
+    if ((int)res.size() < N) N = res.size();
     res.resize(N);
 
     return {res, range_res};
 }
+
+
+/*----------------------------------HELPER FUNCTIONS--------------------------------------------*/
+
+// tbd: ?xreiazetai sqrt? afoy me noiazei h sygkrish apostasewn k dn me noiazei h akrivhs apostash
+float euclideanDist(floatVec& a, floatVec& b, int image_size) {
+    float dist = 0.0;
+    for (int i = 0; i < image_size; i++) 
+        dist += (a[i] - b[i]) * (a[i] - b[i]);
+    return sqrt(dist);
+}
+
+float silhouette(imagesVector dataset, IVFFLAT* ivfflat) {
+    // cout << "\nCentroid-Cluster Consistency " << endl;
+    // for (int i = 0; i < ivfflat->kclusters; i++) {
+    //     if (ivfflat->inverted_lists[i].empty()) continue;
+
+    //     float avg_to_self = 0.0f;
+    //     for (auto &v : ivfflat->inverted_lists[i])
+    //         avg_to_self += euclideanDist(v, ivfflat->centroids[i], ivfflat->image_size);
+    //     avg_to_self /= ivfflat->inverted_lists[i].size();
+
+    //     // Μετρά και απόσταση προς τα διπλανά centroids για να δεις αν επικαλύπτονται
+    //     float min_other = std::numeric_limits<float>::max();
+    //     for (int j = 0; j < ivfflat->kclusters; j++) {
+    //         if (j == i) continue;
+    //         float d = euclideanDist(ivfflat->centroids[i], ivfflat->centroids[j], ivfflat->image_size);
+    //         if (d < min_other) min_other = d;
+    //     }
+
+    //     cout << "Cluster " << i
+    //          << " | size=" << ivfflat->inverted_lists[i].size()
+    //          << " | avg_dist_to_own_centroid=" << avg_to_self
+    //          << " | min_dist_to_nearest_other_centroid=" << min_other
+    //          << endl;
+    // }
+
+    float score = 0.0f;
+    for (int i = 0; i < ivfflat->kclusters; i++) {
+        imagesVector cluster = ivfflat->inverted_lists[i];
+        //floatVec centroid = ivfflat->centroids[i];
+        for (size_t j = 0; j < cluster.size(); j++) {
+            floatVec vec = cluster[j];
+            float avg_dist_curr = 0.0f;
+            for (size_t neigh = 0; neigh < cluster.size(); neigh++) {
+                avg_dist_curr += euclideanDist(vec, cluster[neigh], ivfflat->image_size);
+            }
+            avg_dist_curr /= cluster.size();
+
+            int indx_next_centroid = 0;
+            float closest_dist = std::numeric_limits<float>::max();
+            for (size_t k = 0; k < ivfflat->centroids.size(); k++) {
+                if ((int)k == i) continue;
+                int dist = euclideanDist(vec, ivfflat->centroids[k], ivfflat->image_size);
+                if (dist < closest_dist) {
+                    closest_dist = dist;
+                    indx_next_centroid = k;
+                }
+            }
+
+            float avg_dist_next = 0.0f;
+            imagesVector next_cluster = ivfflat->inverted_lists[indx_next_centroid];
+            for (size_t neigh = 0; neigh < next_cluster.size(); neigh++) {
+                avg_dist_next += euclideanDist(vec, next_cluster[neigh], ivfflat->image_size);
+            }
+            avg_dist_next /= (int)next_cluster.size();
+
+            if (avg_dist_curr > avg_dist_next)
+                cout << "silhouete score: " << (avg_dist_next - avg_dist_curr) / avg_dist_curr << endl; 
+            else
+                cout << "ssilhouete score: " << (avg_dist_next - avg_dist_curr) / avg_dist_next << endl;
+            
+            score += (avg_dist_curr > avg_dist_next) ? (avg_dist_next - avg_dist_curr) / avg_dist_curr : (avg_dist_next - avg_dist_curr) / avg_dist_next;
+        }
+        score /= (int)dataset.size();
+    }
+    return score;
+}
+
 
 
 bool comparePairs(pair<int, float> a, pair<int, float> b) {
@@ -411,13 +417,13 @@ vector<pair<int,float>> bruteForce(IVFFLAT* ivfflat, floatVec q, int q_idx, FILE
     vector<pair<int, float>> brute_res;
 
     for (size_t i = 0; i < dataset.size(); i++) {
-        if (q_idx == i) continue;
+        if (q_idx == (int)i) continue;
         float d = euclideanDist(q, dataset[i], ivfflat->image_size);
         brute_res.push_back({(int)i, d});
     }
 
     sort(brute_res.begin(), brute_res.end(), comparePairs);
-    if (brute_res.size() > ivfflat->n)
+    if ((int)brute_res.size() > ivfflat->n)
         brute_res.resize(ivfflat->n);
     return brute_res;
 }

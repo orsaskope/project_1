@@ -16,7 +16,7 @@ double euclidean_distance(const std::vector<double>& a, const std::vector<double
 //these are the functions that read the sift and mnist data
 
 MNISTData readInputMnist(FILE* fd);
-SIFTData readInputSift(FILE* fd);
+SIFTData readInputSift2(FILE* fd);
 
 // Run lsh for mnist
 void run_mnist_experiment_lsh(Params* p, MNISTData& mnist);

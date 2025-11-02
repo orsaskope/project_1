@@ -8,8 +8,8 @@ using namespace std;
 
 struct Params{
     string input;    // Input file
-    FILE* query;    // Query
-    FILE* o;        // Output file
+    string query;    // Query
+    string o;        // Output file
     int k;          // Number of LSH functions for g
     int l;          // Number of hashtables
     double w;       // Cell size on the straight line
@@ -28,6 +28,8 @@ struct Params{
     int nbits;      // 2^nbits subspaces
     int algorithm;  // lsh = 0, hypercube = 1, ivfflat = 2, ivfpq = 3
 
+    bool pq_sample;
+
     Params();
 };
 
@@ -42,8 +44,8 @@ struct MNISTData {
 };
 
 struct SIFTData {
-    int number_of_vectors = 0;     
-    int v_dim = 128;     
+    int number_of_vectors = 0;
+    int v_dim = 128;
     std::vector<std::vector<float>> vectors; 
 };
 

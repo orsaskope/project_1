@@ -92,7 +92,7 @@ void run_mnist_experiment_lsh(Params* p, MNISTData& mnist) {
     std::cout << "Loaded " << mnist_queries.number_of_images << " query vectors.\n";
 
     // Open output file
-    FILE* outfile = fopen("lsh_results.txt", "w");
+    FILE* outfile = fopen(p->o.c_str(), "w");
     if (!outfile) {
         perror("Failed to open lsh_results.txt");
         exit(errno);
@@ -216,12 +216,12 @@ void run_sift_experiment_lsh(Params* p, SIFTData& sift) {
     // --- Load queries ---
     FILE* fq = fopen("query.dat", "r");
     if (!fq) { perror("Failed to open query.dat"); exit(errno); }
-    SIFTData sift_queries = readInputSift(fq);
+    SIFTData sift_queries = readInputSift2(fq);
     fclose(fq);
     std::cout << "Loaded " << sift_queries.number_of_vectors << " query vectors.\n";
 
     // Open output file
-    FILE* outfile = fopen("lsh_results.txt", "w");
+    FILE* outfile = fopen(p->o.c_str(), "w");
     if (!outfile) {
         perror("Failed to open lsh_results.txt");
         exit(errno);
@@ -355,7 +355,7 @@ void run_mnist_experiment_hypercube(Params* p, MNISTData& mnist) {
     std::cout << "Loaded " << mnist_queries.number_of_images << " query vectors.\n";
 
     // Open output file 
-    FILE* outfile = fopen("hypercube_results.txt", "w");
+    FILE* outfile = fopen(p->o.c_str(), "w");
     if (!outfile) {
         perror("Failed to open hypercube_results.txt");
         exit(errno);
@@ -494,12 +494,12 @@ void run_sift_experiment_hypercube(Params* p, SIFTData& sift) {
     // Load query set
     FILE* fq = fopen("query.dat", "r");
     if (!fq) { perror("Failed to open query.dat"); exit(errno); }
-    SIFTData sift_queries = readInputSift(fq);
+    SIFTData sift_queries = readInputSift2(fq);
     fclose(fq);
     std::cout << "Loaded " << sift_queries.number_of_vectors << " query vectors.\n";
 
     // Open output 
-    FILE* outfile = fopen("hypercube_results.txt", "w");
+    FILE* outfile = fopen(p->o.c_str(), "w");
     if (!outfile) {
         perror("Failed to open hypercube_results.txt");
         exit(errno);

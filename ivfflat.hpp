@@ -23,7 +23,7 @@ struct IVFFLAT {
     imagesVector centroids; // The centroid's index in this vector, is the corresponding cluster's index in inverted_lists
     vector<imagesVector> inverted_lists;
 
-    vector<vector<pair<int, floatVec>>>idVec;
+    vector<vector<pair<int, floatVec>>>idVec;   // For query phase keeps index and distance
     vector<pair<int,float>>centroids_dist;
     
     IVFFLAT(int seed_, int kclusters_, int nprobe_, int n_, int r_, int image_size_);
@@ -42,6 +42,8 @@ vector<int> QueryCentroidSearch(IVFFLAT*, floatVec);
 bool comparePairs(pair<int, float>, pair<int, float>);
 pair<vector<pair<int, float>>, vector<int>> QueryVectorSearch(IVFFLAT*, floatVec, int, vector<int>, FILE*, imagesVector&);
 vector<pair<int,float>> bruteForce(IVFFLAT*, floatVec, int, FILE*, imagesVector&);
+
+float euclideanDist(floatVec& a, floatVec& b, int image_size);
 
 
 #endif

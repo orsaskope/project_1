@@ -4,9 +4,12 @@
 #include <vector>
 #include <cerrno>
 
+#include "implementation.hpp"
 #include "parameters.hpp"
 #include "LSH.hpp"
+#include "hypercube.hpp"  
 #include "ivfflat.hpp"
+#include "ivfpq.hpp"
 
 using namespace std;
 
@@ -56,19 +59,92 @@ MNISTData readInputMnist(FILE* fd) {
     return data;
 }
 
-vector<vector<float>> readInputSift(FILE* fd) {
-    vector<vector<float>> dataset(1000000, vector<float>(128));
+
+
+std::vector<std::vector<float>> readInputSift(FILE* fd) {
+
+    // Get file size
+    fseek(fd, 0, SEEK_END);
+    long file_size = ftell(fd);
+    fseek(fd, 0, SEEK_SET);
+
+    // Each SIFT vector entry: 4 bytes (ID or dim) + 128 floats = 4 + 128*4 = 516 bytes
+    const long vector_size = 516;
+    const int D = 128;
+
+    // Number of vectors in file
+    long nv = file_size / vector_size;
+
+    // ✅ Allocate dataset correctly: nv rows × 128 floats
+    std::vector<std::vector<float>> dataset(nv, std::vector<float>(D));
+
     int32_t dim;
 
-    for (int i = 0; i < 1000000; i++) {
-        int res = fread(&dim, sizeof(dim), 1, fd);
-        res = fread(dataset[i].data(), sizeof(float), 128, fd);
-        if (res != 128) {
-            cout << "error in reading sift vectors" << endl;
-            exit(errno);
+    for (long i = 0; i < nv; i++) {
+
+        // Read the 4-byte dimension/id field (not used)
+        if (fread(&dim, sizeof(dim), 1, fd) != 1) {
+            perror("Error reading dimension/id field");
+            break;
+        }
+
+        // Read the 128 SIFT floats
+        if (fread(dataset[i].data(), sizeof(float), D, fd) != D) {
+            perror("Error reading SIFT vector");
+            break;
         }
     }
+
     return dataset;
+}
+
+
+SIFTData readInputSift2(FILE* fd) {
+    SIFTData data;
+
+    //Check the size of the file
+    fseek(fd, 0, SEEK_END);  
+    long file_size = ftell(fd);  
+    fseek(fd, 0, SEEK_SET);  
+
+    //Calculate the number of vectors based on file size
+    long vector_size = 516;  
+    data.number_of_vectors = (file_size / vector_size);  
+
+    if (file_size % vector_size != 0) {
+        std::cerr << "File size is not a multiple of the expected vector size!" << std::endl;
+        exit(1);
+    }
+
+    // Step 3: Resize the vectors container
+    data.vectors.resize(data.number_of_vectors, std::vector<float>(128));
+
+    // Step 4: Read the vectors
+    int32_t dim;
+    for (int i = 0; i < data.number_of_vectors; ++i) {
+        // Read the dimension (it should be the same for all vectors in the SIFT dataset)
+        int res = fread(&dim, sizeof(dim), 1, fd);
+        if (res != 1) {
+            std::cerr << "Error reading dimension for vector " << i << std::endl;
+            exit(1);
+        }
+
+        if (i == 0) {
+            // Check if the first vector's dimension is 128 (SIFT standard)
+            if (dim != 128) {
+                std::cerr << "Error: The first vector's dimension is not 128, it's " << data.v_dim << std::endl;
+                exit(1);  // Exit if the dimension is not correct
+            }
+        }
+
+        res = fread(data.vectors[i].data(), sizeof(float), 128, fd);
+        if (res != data.v_dim) {
+            std::cerr << "Error reading vector " << i << std::endl;
+            exit(1);
+        }
+    }
+
+    return data;
 }
 
 int main(int argc, char* argv[]) {
@@ -76,68 +152,119 @@ int main(int argc, char* argv[]) {
     initializeParams(p);
     printParameters(p);
 
-    LSH* lsh = nullptr;
     IVFFLAT* ivfflat = nullptr;
+    IVFPQ* ivfpq = nullptr;
 
     FILE* fd = fopen(p->input.c_str(), "r");
-    if (fd == NULL) {
-        perror("Failed to open file");
+    if (!fd) {
+        perror("Failed to open input file");
         exit(errno);
     }
 
-    if (p->type == "mnist") {
-        MNISTData mnist = readInputMnist(fd);
-        
-        std::cout << "MNIST dataset loaded with " << mnist.number_of_images << " images.\n";
-        
-        if (p->algorithm == 0) {
-            lsh = new LSH(p->l, p->k, mnist.image_size, p->w, p->seed);
+    FILE* fdi = fopen(p->query.c_str(), "r");
+    if (fdi == NULL) {
+        perror("Failed to open query file");
+        exit(errno);
+    }
 
-            for (int i = 0; i < mnist.number_of_images; ++i) {
-                std::vector<double> image_double(mnist.image_size);
-                for (int j = 0; j < mnist.image_size; ++j) {
-                    image_double[j] = static_cast<double>(mnist.images[i][j]) / 255.0;
-                }
 
-                lsh->insert(i, image_double ,mnist.number_of_images);
-            }
-
-            lsh->print_tables();
-            return 0;
+    if (p->algorithm == 0) {    // LSH
+        if (p->type == "mnist") {
+            MNISTData mnist = readInputMnist(fd);
+            fclose(fd);
+            run_mnist_experiment_lsh(p, mnist);
         }
-        if (p->algorithm == 2) {
+        else if (p->type == "sift") {
+            SIFTData sift = readInputSift2(fd);
+            fclose(fd);
+            run_sift_experiment_lsh(p, sift);
+        }
+    }
+    else if (p->algorithm == 1) {    // Hypercube
+        if (p->type == "mnist") {
+            MNISTData mnist = readInputMnist(fd);
+            fclose(fd);
+            run_mnist_experiment_hypercube(p, mnist);
+        }
+        else if (p->type == "sift") {
+            SIFTData sift = readInputSift2(fd);
+            fclose(fd);
+            run_sift_experiment_hypercube(p, sift);
+        }
+    }
+    else if (p->algorithm == 2) {
+        if (p->type == "mnist") {
+            MNISTData mnist = readInputMnist(fd);
+            MNISTData query = readInputMnist(fdi);
+
             ivfflat = new IVFFLAT(p->seed, p->kclusters, p->nprobe, p->n, p->r, mnist.image_size);
 
             vector<vector<float>> image_float(mnist.number_of_images, vector<float>(mnist.image_size));
             for (int i = 0; i < mnist.number_of_images; ++i) {
                 for (int j = 0; j < mnist.image_size; ++j) {
-                    image_float[i][j] = static_cast<float>(mnist.images[i][j]) / 255.0; // change to float (dividing by 255 so that the numbers are from 0 to 1);
+                    image_float[i][j] = static_cast<float>(mnist.images[i][j]); // change to float (dividing by 255 so that the numbers are from 0 to 1);
                 }
             }
-            // for (int j = 0; j < mnist.images.size(); j++) {
-            //     for (int i = 0; i < mnist.images[j].size(); i++)
-            //         printf("%u ", mnist.images[i][j]);
-            //     cout << endl;
-            // }
-            IvfflatSearch(image_float, ivfflat, p->range);
+
+            vector<vector<float>> query_float(query.number_of_images, vector<float>(query.image_size));
+            for (int i = 0; i < query.number_of_images; ++i) {
+                for (int j = 0; j < query.image_size; ++j) {
+                    query_float[i][j] = static_cast<float>(query.images[i][j]); 
+                }
+            }
+
+            if (!p->range) p->r = 0;
+            IvfflatSearch(image_float, ivfflat, query_float, p->o);
             cout << "retuned to search" << endl;
-            
 
         }
+        else if (p->type == "sift") {
+            vector<vector<float>> dataset = readInputSift(fd);
+            vector<vector<float>> query = readInputSift(fdi);
 
-
-
-    } else {
-        vector<vector<float>> dataset = readInputSift(fd);
-        std::cout << "SIFT dataset loaded.\n";
-        //lsh = new LSH(p->l, p->k, 128, p->w, p->seed);
-        ivfflat = new IVFFLAT(p->seed, p->kclusters, p->nprobe, p->n, p->r, 128);
-        IvfflatSearch(dataset, ivfflat, p->range);
+            ivfflat = new IVFFLAT(p->seed, p->kclusters, p->nprobe, p->n, p->r, 128);
+            if (!p->range)  p->r = 0;
+            IvfflatSearch(dataset, ivfflat, query, p->o);
             cout << "retuned to search" << endl;
+        }
     }
+    else if (p->algorithm == 3) {
+        if (p->type == "mnist") {
+            MNISTData mnist = readInputMnist(fd);
+            MNISTData query = readInputMnist(fdi); 
+            
+            ivfpq = new IVFPQ(p->seed, p->kclusters, p->nprobe, p->n, p->r, mnist.image_size, p->m, p->nbits, p->pq_sample);
 
+            vector<vector<float>> image_float(mnist.number_of_images, vector<float>(mnist.image_size));
+            for (int i = 0; i < mnist.number_of_images; ++i) {
+                for (int j = 0; j < mnist.image_size; ++j) {
+                    image_float[i][j] = static_cast<float>(mnist.images[i][j]); 
+                }
+            }
 
-    fclose(fd);
-    delete(p);
+            vector<vector<float>> query_float(query.number_of_images, vector<float>(query.image_size));
+            for (int i = 0; i < query.number_of_images; ++i) {
+                for (int j = 0; j < query.image_size; ++j) {
+                    query_float[i][j] = static_cast<float>(query.images[i][j]); 
+                }
+            }
+
+            if (!p->range) p->r = 0;
+            IvfpqSearch(image_float, ivfpq, query_float, p->o);
+            cout << "retuned to search" << endl;
+        }
+        else if (p->type == "sift") {
+            vector<vector<float>> dataset = readInputSift(fd);
+            vector<vector<float>> query = readInputSift(fdi);
+
+            ivfpq = new IVFPQ(p->seed, p->kclusters, p->nprobe, p->n, p->r, 128, p->m, p->nbits, p->pq_sample);
+            if (!p->range)  p->r = 0;
+            IvfpqSearch(dataset, ivfpq, query, p->o);
+        }       
+    }
+    
+    
+
+    delete p;
     return 0;
 }
