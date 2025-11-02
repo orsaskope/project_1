@@ -1,6 +1,6 @@
-OBJS = search.o parameters.o LSH.o IVFFLAT.o
-HEADERS = params.hpp LSH.h ivfflat.hpp
-SOURCE = search.cpp parameters.cpp LSH.cpp IVFFLAT.cpp
+OBJS = search.o parameters.o LSH.o IVFFLAT.o ivfpq.o
+HEADERS = params.hpp LSH.h ivfflat.hpp ivfpq.hpp
+SOURCE = search.cpp parameters.cpp LSH.cpp IVFFLAT.cpp IVFPQ.cpp
 EXEC = search
 
 ARGS = -ivfflat -type mnist -k 50  -seed 9 -d input.dat -kclusters 4 -range true
@@ -20,4 +20,4 @@ run: $(EXEC)
 	./$(EXEC) $(ARGS)
 
 clean:
-	rm -f $(OBJS) $(EXEC)
+	rm -f $(OBJS) $(EXEC) output.txt

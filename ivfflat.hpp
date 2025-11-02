@@ -20,20 +20,28 @@ struct IVFFLAT {
     int r;
     int image_size;
 
-    imagesVector centroids; // The centroid's index in this vector, is the centroid's index in inverted_lists
+    imagesVector centroids; // The centroid's index in this vector, is the corresponding cluster's index in inverted_lists
     vector<imagesVector> inverted_lists;
+
+    vector<vector<pair<int, floatVec>>>idVec;
+    vector<pair<int,float>>centroids_dist;
     
     IVFFLAT(int seed_, int kclusters_, int nprobe_, int n_, int r_, int image_size_);
 };
 
+void IvfflatSearch(imagesVector&, IVFFLAT*, imagesVector, string output);
+
+void clustering(imagesVector&, IVFFLAT*);
+void getNewCentroid(imagesVector&, IVFFLAT*, floatVec, std::default_random_engine&, int);
 void updateCentroids(IVFFLAT*);
-floatVec findMinDistanceToCentroids(imagesVector dataset, IVFFLAT* ivfflat);
-void getNewCentroid(imagesVector dataset, IVFFLAT* ivfflat, floatVec D, std::default_random_engine&, int);
-void printCLusters(IVFFLAT*);
-void assignToNearestCentroid(imagesVector, IVFFLAT*);
-void IvfflatSearch(imagesVector, IVFFLAT*, int range);
-void clustering(imagesVector, IVFFLAT*);
-void IvfflatInit(imagesVector);
+floatVec findMinDistanceToCentroids(imagesVector&, IVFFLAT*);
+void assignToNearestCentroid(imagesVector&, IVFFLAT*);
+float silhouette (imagesVector, IVFFLAT*);
+
+vector<int> QueryCentroidSearch(IVFFLAT*, floatVec);
+bool comparePairs(pair<int, float>, pair<int, float>);
+pair<vector<pair<int, float>>, vector<int>> QueryVectorSearch(IVFFLAT*, floatVec, int, vector<int>, FILE*, imagesVector&);
+vector<pair<int,float>> bruteForce(IVFFLAT*, floatVec, int, FILE*, imagesVector&);
 
 
 #endif
